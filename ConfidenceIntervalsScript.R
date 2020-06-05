@@ -1,5 +1,7 @@
-design <- readRDS("DataFiles/design_factors.Rds") # Populated from Excel spreadsheet
-df <- readRDS("DataFiles/Table 9.2.Rds")          # This is the table after columns and variables have been renamed, and any unwanted columns removed, but before all processing has been done.
+library(magrittr) # To use pipes (%>%)
+
+design <- readRDS("DataFiles/design_factors.Rds") # Populated from Excel spreadsheet in package
+df <- readRDS("DataFiles/Table 9.2.Rds")          # This is the table after columns and variables have been renamed, and any unwanted columns removed, but before the main processing has been done.
 
 # Table 9.2 is a time series/type 1 table, the code below is based on code in process_table_type_1.R
 # The main 'variable' column is called 'blank' as in the final tables the column name is hidden.
@@ -45,7 +47,7 @@ df <- tidyr::gather(df,
   dplyr::group_by(Council, Year)
 
 # At this point, the table is fine for this stage in the processing.
-# The group_by function above means that the next line of code to each combination of Council and Year
+# The group_by function above means that the following code applies to each combination of Council and Year
 
 View(df)
 
