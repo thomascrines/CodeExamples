@@ -1,4 +1,5 @@
 library(magrittr) # To use pipes (%>%)
+library(tidyr) # To use 'fill'
 
 design <- readRDS("DataFiles/design_factors.Rds") # Populated from Excel spreadsheet in package
 df <- readRDS("DataFiles/Table 9.2.Rds")          # This is the table after columns and variables have been renamed, and any unwanted columns removed, but before the main processing has been done.
@@ -49,23 +50,32 @@ df <- tidyr::gather(df,
 # At this point, the table is fine for this stage in the processing.
 # The group_by function above means that the following code applies to each combination of Council and Year
 
+
+# Create new base colunm with values from percent column.
+
+df <- dplyr::mutate(df, Base = Percent) 
+
+# TRUE if Base value
+
+df$Base <- grepl('Base', df$blank)
+
+# Copy over from percentage column if TRUE
+
+df$Base <- ifelse(df$Base == FALSE, df$Base, df$Percent)
+
+# FALSE as NA
+
+df$Base <- gsub(FALSE, NA, df$Base) 
+
+# Fill rows up from base value
+
+df <- fill(df, Base, .direction= c ("up"))
+
+
+
 View(df)
 
-df <- dplyr::mutate(df, 
-                    Base = Percent[`blank` == 'Health services - Base'])
-
-# This is the part that needs changed, lines 52/53 are adding a column called Base, 
-# populated with the 'Health services - Base' value.
-
-# It should be populated with 'Health services - Base' if the 'blank' value starts with 'Health Services', 
-# 'Schools - Base' if it starts with 'Schools' etc.
-
-# You can see what effect it has:
-
-View(df)
-
-# These lines shouldn't need changed as they calculate the confidence intervals from the Base value.
-# If that's calculated correctly in lines 52/53, this should still run okay:
+# Calculate the confidence intervals from the Base value.
 
 df <- merge(df, design, by = 'Year') %>%
 dplyr::mutate(sig_value = 1.96 * as.numeric(Factor) * (sqrt((as.numeric(Percent) / 100) * (1 - (as.numeric(Percent) / 100)) / as.numeric(Base))), 
